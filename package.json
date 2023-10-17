@@ -1,0 +1,108 @@
+{
+	"name": "make-postmeta-faster",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"start": "wp-env start",
+		"update": "wp-env start --update",
+		"stop": "wp-env stop",
+		"env": "wp-env",
+		"env:install": "wp core download --path=wordpress --locale=ja",
+		"env:download": "node ./bin/compiler.js env",
+		"cli": "wp-env run cli wp",
+		"cli:test": "wp-env run tests-cli wp",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"test:plugin": "RESULT=${PWD##*/} && wp-env run tests-cli ./wp-content/plugins/$RESULT/vendor/bin/phpunit -c ./wp-content/plugins/$RESULT/phpunit.xml.dist",
+		"test:theme": "RESULT=${PWD##*/} && wp-env run tests-cli ./wp-content/themes/$RESULT/vendor/bin/phpunit -c ./wp-content/themes/$RESULT/phpunit.xml.dist",
+		"build": "npm run build:js && npm run build:css && npm run build:block && npm run lib:normalize && npm run dump && npm run imagemin",
+		"build:block": "wp-scripts build --webpack-src-dir=src/blocks --output-path=build/blocks",
+		"build:css": "sass ./src/scss/:./build/css/ && postcss ./build/css/**/*.css --replace",
+		"build:js": "node ./bin/compiler.js js",
+		"create:block": "node ./bin/compiler.js block",
+		"dump": "node ./bin/compiler.js dump",
+		"lint": "npm run lint:js && npm run lint:css",
+		"lint:css": "wp-scripts lint-style ./src/**/*.scss",
+		"lint:js": "wp-scripts lint-js ./src",
+		"imagemin": "node ./bin/imagemin.mjs src/image build/image",
+		"format:js": "wp-scripts format-js ./src",
+		"watch": "npm-watch"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/tarosky/make-postmeta-faster.git"
+	},
+	"keywords": [
+		"wordpress"
+	],
+	"engines": {
+		"node": ">=16.0.0"
+	},
+	"author": "Tarosky INC.",
+	"license": "GPL-3.0-or-later",
+	"bugs": {
+		"url": "https://github.com/tarosky/make-postmeta-faster/issues"
+	},
+	"homepage": "https://github.com/tarosky/make-postmeta-faster#readme",
+	"devDependencies": {
+		"@kunoichi/grab-deps": "^1.3.1",
+		"@wordpress/create-block": "^4.27.0",
+		"@wordpress/env": "^8.9.0",
+		"@wordpress/scripts": "^26.14.0",
+		"@wordpress/stylelint-config": "^21.26.0",
+		"cssnano": "^6.0.1",
+		"glob": "^10.3.10",
+		"imagemin": "^8.0.1",
+		"imagemin-gifsicle": "^7.0.0",
+		"imagemin-pngquant": "^9.0.2",
+		"imagemin-svgo": "^10.0.1",
+		"npm-watch": "^0.11.0",
+		"postcss-cli": "^10.1.0"
+	},
+	"watch": {
+		"build:block": {
+			"extensions": "js,scss,json",
+			"patterns": [
+				"src/blocks"
+			]
+		},
+		"build:css": {
+			"extensions": "scss",
+			"patterns": [
+				"src/scss"
+			]
+		},
+		"build:js": {
+			"extensions": "js",
+			"patterns": [
+				"src/js"
+			]
+		},
+		"dump": {
+			"extensions": "js,css,php,json",
+			"patterns": [
+				"build/js",
+				"build/css",
+				"build/blocks"
+			]
+		},
+		"imagemin": {
+			"extensions": "jpg,jpeg,gif,png,svg",
+			"patterns": [
+				"src/image"
+			]
+		},
+		"lint:css": {
+			"extensions": "scss",
+			"patterns": [
+				"src/scss"
+			]
+		},
+		"lint:js": {
+			"extensions": "js",
+			"patterns": [
+				"src"
+			]
+		}
+	}
+}
