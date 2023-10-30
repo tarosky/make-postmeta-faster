@@ -28,7 +28,7 @@ class PostMetaIndexChecker extends AbstractIndexChecker {
 	 * {@inheritDoc}
 	 */
 	protected function add_index_query(): string {
-		$query = <<<SQL
+		$query                                 = <<<SQL
 			ALTER TABLE %i ADD INDEX meta_key_meta_value (meta_key(%d), meta_value (%d));
 SQL;
 		list( $meta_key_len, $meta_value_len ) = $this->key_length();
@@ -56,15 +56,14 @@ SQL;
 	 * @return int[]
 	 */
 	protected function key_length() {
-		$length = get_option( 'mpmf-postmeta-key-length', [ 255, 64 ] );
+		$length = get_option( 'mpmf-postmeta-key-length', array( 255, 64 ) );
 		if ( ! is_array( $length ) || count( $length ) !== 2 ) {
-			return [ 255, 64 ];
+			return array( 255, 64 );
 		}
 		list( $key_len, $val_len ) = array_map( 'intval', $length );
-		return [
+		return array(
 			min( max( 32, $key_len ), 255 ),
 			max( 64, $val_len ),
-		];
+		);
 	}
-
 }

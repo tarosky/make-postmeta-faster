@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || die();
 require_once __DIR__ . '/vendor/autoload.php';
 
 // Initialize plugin.
-add_action( 'plugins_loaded', function() {
+add_action( 'plugins_loaded', function () {
 	// Add translation.
 	load_plugin_textdomain( 'mpmf', false, basename( __DIR__ ) . '/languages' );
 	// Enable boostrap.

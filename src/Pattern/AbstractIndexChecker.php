@@ -15,14 +15,14 @@ abstract class AbstractIndexChecker extends SingletonPattern {
 	 *
 	 * @return string
 	 */
-	abstract protected function table():string;
+	abstract protected function table(): string;
 
 	/**
 	 * Key name of index.
 	 *
 	 * @return string
 	 */
-	abstract protected function key_name():string;
+	abstract protected function key_name(): string;
 
 	/**
 	 * Get index from key name.
@@ -71,7 +71,7 @@ SQL;
 	 *
 	 * @return string
 	 */
-	abstract protected function add_index_query():string;
+	abstract protected function add_index_query(): string;
 
 	/**
 	 * Create index for table.
@@ -97,7 +97,7 @@ SQL;
 	 *
 	 * @return string
 	 */
-	abstract protected function explain_query():string;
+	abstract protected function explain_query(): string;
 
 	/**
 	 * Explain query.
@@ -115,17 +115,17 @@ SQL;
 	 */
 	public function explain_score() {
 		$explain = $this->explain();
-		$result = [
+		$result  = array(
 			'filesort'  => 0,
 			'temporary' => 0,
-		];
+		);
 		foreach ( $explain as $row ) {
 			$extra = $row['Extra'];
 			if ( str_contains( $extra, 'Using filesort' ) ) {
-				$result['filesort']++;
+				++$result['filesort'];
 			}
 			if ( str_contains( $extra, 'Using temporary' ) ) {
-				$result['temporary']++;
+				++$result['temporary'];
 			}
 		}
 		return $result;
@@ -147,5 +147,4 @@ SQL;
 				return null;
 		}
 	}
-
 }

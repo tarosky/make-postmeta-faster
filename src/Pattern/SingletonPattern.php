@@ -10,7 +10,7 @@ abstract class SingletonPattern {
 	/**
 	 * @var static[] Instances.
 	 */
-	private static $instances = [];
+	private static $instances = array();
 
 	/**
 	 * Constructor.

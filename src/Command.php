@@ -16,11 +16,11 @@ class Command extends \WP_CLI_Command {
 	 * @param string $name DB name for command.
 	 * @return Pattern\AbstractIndexChecker
 	 */
-	protected function map_dbname( $name )  {
-		$map = [
+	protected function map_dbname( $name ) {
+		$map = array(
 			'postmeta' => PostMetaIndexChecker::get_instance(),
-		];
-		if ( ! isset( $map[ $name ]) ) {
+		);
+		if ( ! isset( $map[ $name ] ) ) {
 			\WP_CLI::error( sprintf( __( '%s is not available', 'mpmf' ), $name ) );
 		}
 		return $map[ $name ];
@@ -39,7 +39,7 @@ class Command extends \WP_CLI_Command {
 	 */
 	public function display( $args ) {
 		list( $table ) = $args;
-		$result = $this->map_dbname( $table )->get_indices();
+		$result        = $this->map_dbname( $table )->get_indices();
 		if ( empty( $result ) ) {
 			\WP_CLI::error( __( 'No index found for this table.', 'mpmf' ) );
 		}
@@ -60,7 +60,7 @@ class Command extends \WP_CLI_Command {
 	 */
 	public function is_valid( $args ) {
 		list( $table ) = $args;
-		$result = $this->map_dbname( $table )->has_index();
+		$result        = $this->map_dbname( $table )->has_index();
 		if ( $result ) {
 			\WP_CLI::success( sprintf( __( '%s has a valid index.', 'mpmf' ), $table ) );
 		} else {
@@ -82,7 +82,7 @@ class Command extends \WP_CLI_Command {
 	 */
 	public function clear( $args ) {
 		list( $table ) = $args;
-		$db = $this->map_dbname( $table );
+		$db            = $this->map_dbname( $table );
 		if ( ! $db->has_index() ) {
 			\WP_CLI::error( sprintf( __( '%s has no valid index yet.', 'mpmf' ), $table ) );
 		}
@@ -118,7 +118,7 @@ class Command extends \WP_CLI_Command {
 				\WP_CLI::error( sprintf( __( 'Failed to remove old index of %s.', 'mpmf' ), $table ) );
 			}
 		}
-		if ( ! $result = $db->add() ) {
+		if ( ! $db->add() ) {
 			\WP_CLI::error( sprintf( __( 'Failed to add index of %s.', 'mpmf' ), $table ) );
 		}
 		\WP_CLI::success( sprintf( __( 'Index is successfully added to %s.', 'mpmf' ), $table ) );
@@ -138,11 +138,11 @@ class Command extends \WP_CLI_Command {
 	 */
 	public function explain( $args ) {
 		list( $table ) = $args;
-		$db = $this->map_dbname( $table );
-		$result = $db->explain();
+		$db            = $this->map_dbname( $table );
+		$result        = $db->explain();
 		$this->array_to_table( $result );
 		$score = array_sum( $db->explain_score() );
-		$s = $db->explain_score();
+		$s     = $db->explain_score();
 		if ( $score ) {
 			\WP_CLI::error( sprintf( __( 'Bad filesort count: %d', 'mpmf' ), $score ) );
 		} else {

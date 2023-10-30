@@ -14,8 +14,8 @@ class Setting extends SingletonPattern {
 	 * {@inheritDoc}
 	 */
 	protected function init() {
-		add_action( 'admin_menu', [ $this, 'register_menu' ] );
-		add_action( 'admin_init', [ $this, 'register_settings' ] );
+		add_action( 'admin_menu', array( $this, 'register_menu' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
 	}
 
 	/**
@@ -24,7 +24,7 @@ class Setting extends SingletonPattern {
 	 * @return void
 	 */
 	public function register_menu() {
-		add_submenu_page( 'tools.php', __( 'Database Index Optimization', 'mpmf' ), __( 'DB Index', 'mpmf' ), 'manage_options', 'mpmf', [ $this, 'render_menu' ] );
+		add_submenu_page( 'tools.php', __( 'Database Index Optimization', 'mpmf' ), __( 'DB Index', 'mpmf' ), 'manage_options', 'mpmf', array( $this, 'render_menu' ) );
 	}
 
 	/**
@@ -63,15 +63,15 @@ class Setting extends SingletonPattern {
 	 */
 	public function register_settings() {
 		// Add section postmeta.
-		add_settings_section( 'mpmf-postmeta', __( 'Postmeta Index', 'mpmf' ), function() {
+		add_settings_section( 'mpmf-postmeta', __( 'Postmeta Index', 'mpmf' ), function () {
 			printf(
 				'<p class="desc">%s</p>',
 				wp_kses_post( __( 'This option affects the query performance of <code>wp_postmeta</code>.', 'mpfm' ) )
 			);
 		}, 'mpmf' );
 		// Key-length.
-		add_settings_field( 'mpmf-postmeta-key-length', __( 'Key Length', 'mpmf' ), function() {
-			$length = get_option( 'mpmf-postmeta-key-length', [ 255, 64 ] );
+		add_settings_field( 'mpmf-postmeta-key-length', __( 'Key Length', 'mpmf' ), function () {
+			$length = get_option( 'mpmf-postmeta-key-length', array( 255, 64 ) );
 			?>
 			<label class="mpmf-label">
 				<?php esc_html_e( 'Meta Key', 'mpmf' ); ?><br />
