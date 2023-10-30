@@ -62,9 +62,7 @@ jobs:
 
       - name: Build package.
         run: |
-          composer install --prefer-dist --no-progress --no-suggest --no-interaction --no-dev
-          npm install
-          npm run build
+          composer install --prefer-dist --no-progress --no-interaction --no-dev
 
       - name: Generate readme.txt
         uses: tarosky/workflows/actions/wp-readme@main
@@ -77,6 +75,9 @@ jobs:
 
       - name: Clean Package
         uses: tarosky/workflows/actions/distignore@main
+
+      - name: Make zip
+        run: zip -r ${{ github.event.repository.name }}.zip ./
 
       - name: Create Release
         id: create_release
