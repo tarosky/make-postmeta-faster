@@ -36,11 +36,35 @@ SQL;
 	}
 
 	/**
+	 * Explain query.
+	 *
+	 * @return string
+	 */
+	protected function explain_query(): string {
+		$query = <<<SQL
+			EXPLAIN SELECT * FROM %i
+			WHERE meta_key = %s
+			  AND meta_value LIKE %s
+SQL;
+		$query = $this->db->prepare( $query, $this->table(), '_wp_attached_file', wp_date( 'Y/m%' ) );
+		return $query;
+	}
+
+	/**
 	 * Key length.
 	 *
 	 * @return int[]
 	 */
 	protected function key_length() {
-		return [ 255, 64 ];
+		$length = get_option( 'mpmf-postmeta-key-length', [ 255, 64 ] );
+		if ( ! is_array( $length ) || count( $length ) !== 2 ) {
+			return [ 255, 64 ];
+		}
+		list( $key_len, $val_len ) = array_map( 'intval', $length );
+		return [
+			min( max( 32, $key_len ), 255 ),
+			max( 64, $val_len ),
+		];
 	}
+
 }

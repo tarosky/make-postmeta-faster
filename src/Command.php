@@ -43,18 +43,11 @@ class Command extends \WP_CLI_Command {
 		if ( empty( $result ) ) {
 			\WP_CLI::error( __( 'No index found for this table.', 'mpmf' ) );
 		}
-		$table = new Table();
-		foreach ( $result as $index => $row ) {
-			if ( ! $index ) {
-				$table->setHeaders( array_keys( $row ) );
-			}
-			$table->addRow( array_values( $row ) );
-		}
-		$table->display();
+		$this->array_to_table( $result );
 	}
 
 	/**
-	 * Does this table has enough index?
+	 * Does this table has valid index?
 	 *
 	 * ## Option
 	 *
@@ -129,5 +122,48 @@ class Command extends \WP_CLI_Command {
 			\WP_CLI::error( sprintf( __( 'Failed to add index of %s.', 'mpmf' ), $table ) );
 		}
 		\WP_CLI::success( sprintf( __( 'Index is successfully added to %s.', 'mpmf' ), $table ) );
+	}
+
+	/**
+	 * Explain query
+	 *
+	 * ## Option
+	 *
+	 * <table>
+	 * : Table name.
+	 *
+	 * @param array $args
+	 * @synopsis <table>
+	 * @return void
+	 */
+	public function explain( $args ) {
+		list( $table ) = $args;
+		$db = $this->map_dbname( $table );
+		$result = $db->explain();
+		$this->array_to_table( $result );
+		$score = array_sum( $db->explain_score() );
+		$s = $db->explain_score();
+		if ( $score ) {
+			\WP_CLI::error( sprintf( __( 'Bad filesort count: %d', 'mpmf' ), $score ) );
+		} else {
+			\WP_CLI::success( __( 'Query is fast and good.', 'mpmf' ) );
+		}
+	}
+
+	/**
+	 * Convert table to array.
+	 *
+	 * @param array $result
+	 * @return void
+	 */
+	protected function array_to_table( $result ) {
+		$table = new Table();
+		foreach ( $result as $index => $row ) {
+			if ( ! $index ) {
+				$table->setHeaders( array_keys( $row ) );
+			}
+			$table->addRow( array_values( $row ) );
+		}
+		$table->display();
 	}
 }

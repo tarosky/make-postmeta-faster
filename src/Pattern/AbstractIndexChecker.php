@@ -93,6 +93,45 @@ SQL;
 	}
 
 	/**
+	 * Explain query to check if this index is required.
+	 *
+	 * @return string
+	 */
+	abstract protected function explain_query():string;
+
+	/**
+	 * Explain query.
+	 *
+	 * @return array
+	 */
+	public function explain() {
+		return $this->db->get_results( $this->explain_query(), ARRAY_A );
+	}
+
+	/**
+	 * Get index score.
+	 *
+	 * @return array{filesort:int, temporary:int}
+	 */
+	public function explain_score() {
+		$explain = $this->explain();
+		$result = [
+			'filesort'  => 0,
+			'temporary' => 0,
+		];
+		foreach ( $explain as $row ) {
+			$extra = $row['Extra'];
+			if ( str_contains( $extra, 'Using filesort' ) ) {
+				$result['filesort']++;
+			}
+			if ( str_contains( $extra, 'Using temporary' ) ) {
+				$result['temporary']++;
+			}
+		}
+		return $result;
+	}
+
+	/**
 	 * Getter
 	 *
 	 * @param string $name Property name.
