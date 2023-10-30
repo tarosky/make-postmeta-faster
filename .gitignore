@@ -3,4 +3,4 @@
 /build
 /wordpress
 composer.lock
-
+*.cache
