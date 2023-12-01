@@ -49,7 +49,7 @@
 		"@wordpress/create-block": "^4.28.0",
 		"@wordpress/env": "^8.10.0",
 		"@wordpress/scripts": "^26.15.0",
-		"@wordpress/stylelint-config": "^21.27.0",
+		"@wordpress/stylelint-config": "^21.30.0",
 		"cssnano": "^6.0.1",
 		"glob": "^10.3.10",
 		"imagemin": "^8.0.1",
