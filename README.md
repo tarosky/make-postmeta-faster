@@ -8,6 +8,12 @@ A WordPress plugin to manage wp_postmeta index.
 
 ### CLI
 
+`wp plugin install` コマンドでインストールして有効化できます。
+
+```
+wp plugin install https://github.com/tarosky/make-postmeta-faster/releases/latest/download/make-postmeta-faster.zip --activate
+```
+
 `index` コマンドが利用可能になります。
 
 ```
