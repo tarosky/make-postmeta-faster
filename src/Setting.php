@@ -64,8 +64,8 @@ class Setting extends SingletonPattern {
 		if ( $hook_suffix !== $this->hook_suffix ) {
 			return;
 		}
-		$base_dir = plugin_dir_path( dirname( __FILE__ ) );
-		$base_url = plugin_dir_url( dirname( __FILE__ ) );
+		$base_dir = plugin_dir_path( __DIR__ );
+		$base_url = plugin_dir_url( __DIR__ );
 		$json     = $base_dir . 'wp-dependencies.json';
 		if ( ! file_exists( $json ) ) {
 			return;

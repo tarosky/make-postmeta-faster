@@ -27,7 +27,6 @@
 		"squizlabs/php_codesniffer": "*",
 		"wp-coding-standards/wpcs": "*",
 		"yoast/phpunit-polyfills": "*",
-		"phpcompatibility/php-compatibility": "*",
 		"dealerdirect/phpcodesniffer-composer-installer": "*"
 	},
 	"config": {
