@@ -1,6 +1,14 @@
-# index-faster
+# Make Post Meta Faster
 
 A WordPress plugin to manage wp_postmeta index.
+
+## Description
+
+This plugin was born related to this ticket: https://core.trac.wordpress.org/ticket/41281
+
+これまでの私の経験から、大量の投稿を持つWordPressサイトはpost metaを含むクエリがスロークエリになる傾向があります。ひどい場合は30秒もかかることがあり、また、それは投稿が特定の数を超えた場合に発生する、つまり「ある日突然サイトが重くなる」という事象によって発生します。これはMySQLがFile Sortを戦略として選んだ時です。
+
+このプラグインはFile Sort発生を防ぐため、post metaにインデックスを付与します。
 
 ## Usage
 

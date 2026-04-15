@@ -20,7 +20,7 @@ class PostMetaIndexChecker extends AbstractIndexChecker {
 	/**
 	 * {@inheritDoc}
 	 */
-	protected function key_name(): string {
+	public function key_name(): string {
 		return 'meta_key_meta_value';
 	}
 

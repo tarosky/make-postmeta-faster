@@ -18,7 +18,9 @@ class Bootstrap extends SingletonPattern {
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'index', Command::class );
 		}
-		// Setting sdreen.
+		// Setting screen.
 		Setting::get_instance();
+		// REST API.
+		Api\IndexApi::get_instance();
 	}
 }

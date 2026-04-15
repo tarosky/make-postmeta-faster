@@ -6,9 +6,14 @@ namespace Tarosky\MakePostmetaFaster;
 use Tarosky\MakePostmetaFaster\Pattern\SingletonPattern;
 
 /**
- * Add setting screen.
+ * Admin setting screen.
  */
 class Setting extends SingletonPattern {
+
+	/**
+	 * @var string Admin page hook suffix.
+	 */
+	private $hook_suffix = '';
 
 	/**
 	 * {@inheritDoc}
@@ -16,6 +21,7 @@ class Setting extends SingletonPattern {
 	protected function init() {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
 	/**
@@ -24,7 +30,14 @@ class Setting extends SingletonPattern {
 	 * @return void
 	 */
 	public function register_menu() {
-		add_submenu_page( 'tools.php', __( 'Database Index Optimization', 'mpmf' ), __( 'DB Index', 'mpmf' ), 'manage_options', 'mpmf', array( $this, 'render_menu' ) );
+		$this->hook_suffix = add_submenu_page(
+			'tools.php',
+			__( 'Meta Index', 'mpmf' ),
+			__( 'Meta Index', 'mpmf' ),
+			'manage_options',
+			'mpmf',
+			array( $this, 'render_menu' )
+		);
 	}
 
 	/**
@@ -34,26 +47,48 @@ class Setting extends SingletonPattern {
 	 */
 	public function render_menu() {
 		?>
-		<style>
-			.mpmf-label {
-				display: inline-block;
-				margin: 0 1em 1em 0;
-			}
-		</style>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Database Index Optimizer', 'mpmf' ); ?></h1>
-			<h2><?php esc_html_e( 'Performance Check', 'mpmf' ); ?></h2>
-			<p><?php esc_html_e( 'This feature is "work in progress".', 'mpmf' ); ?></p>
-			<hr />
-			<form action="<?php echo admin_url( 'options.php' ); ?>" method="post">
-				<?php
-				settings_fields( 'mpmf' );
-				do_settings_sections( 'mpmf' );
-				submit_button();
-				?>
-			</form>
+			<h1><?php esc_html_e( 'Meta Index', 'mpmf' ); ?></h1>
+			<div id="mpmf-admin-root"></div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Enqueue admin assets.
+	 *
+	 * @param string $hook_suffix Current admin page hook suffix.
+	 * @return void
+	 */
+	public function enqueue_assets( $hook_suffix ) {
+		if ( $hook_suffix !== $this->hook_suffix ) {
+			return;
+		}
+		$base_dir = plugin_dir_path( __DIR__ );
+		$base_url = plugin_dir_url( __DIR__ );
+		$json     = $base_dir . 'wp-dependencies.json';
+		if ( ! file_exists( $json ) ) {
+			return;
+		}
+		$deps = json_decode( file_get_contents( $json ), true );
+		if ( ! $deps ) {
+			return;
+		}
+		foreach ( $deps as $dep ) {
+			if ( empty( $dep['handle'] ) || empty( $dep['path'] ) ) {
+				continue;
+			}
+			$handle = $dep['handle'];
+			$src    = $base_url . $dep['path'];
+			$ver    = $dep['hash'] ?? $dep['version'] ?? false;
+			$d      = $dep['deps'] ?? array();
+			if ( preg_match( '/\.css$/', $dep['path'] ) ) {
+				wp_enqueue_style( $handle, $src, $d, $ver );
+			} else {
+				$footer = $dep['footer'] ?? true;
+				wp_enqueue_script( $handle, $src, $d, $ver, $footer );
+			}
+		}
 	}
 
 	/**
@@ -62,27 +97,6 @@ class Setting extends SingletonPattern {
 	 * @return void
 	 */
 	public function register_settings() {
-		// Add section postmeta.
-		add_settings_section( 'mpmf-postmeta', __( 'Postmeta Index', 'mpmf' ), function () {
-			printf(
-				'<p class="desc">%s</p>',
-				wp_kses_post( __( 'This option affects the query performance of <code>wp_postmeta</code>.', 'mpfm' ) )
-			);
-		}, 'mpmf' );
-		// Key-length.
-		add_settings_field( 'mpmf-postmeta-key-length', __( 'Key Length', 'mpmf' ), function () {
-			$length = get_option( 'mpmf-postmeta-key-length', array( 255, 64 ) );
-			?>
-			<label class="mpmf-label">
-				<?php esc_html_e( 'Meta Key', 'mpmf' ); ?><br />
-				<input placeholder="255" type="number" min="32" max="255" name="mpmf-postmeta-key-length[]" value="<?php echo esc_attr( $length[0] ); ?>" />
-			</label>
-			<label class="mpmf-label">
-				<?php esc_html_e( 'Meta Value', 'mpmf' ); ?><br />
-				<input placeholder="64" type="number" min="32" name="mpmf-postmeta-key-length[]" value="<?php echo esc_attr( $length[1] ); ?>" />
-			</label>
-			<?php
-		}, 'mpmf', 'mpmf-postmeta' );
 		register_setting( 'mpmf', 'mpmf-postmeta-key-length' );
 	}
 }

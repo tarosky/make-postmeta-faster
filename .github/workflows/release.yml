@@ -23,8 +23,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install dependencies
+      - name: Install PHP dependencies
         run: composer install --prefer-dist --no-progress --no-interaction --no-dev
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: |
+          npm run build:js
+          npm run build:css
+          npm run dump
 
       - name: Generate readme.txt
         uses: tarosky/workflows/actions/wp-readme@main
