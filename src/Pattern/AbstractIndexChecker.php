@@ -22,7 +22,7 @@ abstract class AbstractIndexChecker extends SingletonPattern {
 	 *
 	 * @return string
 	 */
-	abstract protected function key_name(): string;
+	abstract public function key_name(): string;
 
 	/**
 	 * Get index from key name.

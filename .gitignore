@@ -4,3 +4,5 @@
 /wordpress
 composer.lock
 *.cache
+wp-dependencies.json
+

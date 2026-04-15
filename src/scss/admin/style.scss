@@ -1,0 +1,78 @@
+/*!
+ * Admin page styles for Make Postmeta Faster.
+ *
+ * @handle mpmf-admin
+ * @deps wp-components
+ */
+
+.mpmf-admin {
+	max-width: 960px;
+
+	> .components-card {
+		margin-bottom: 1em;
+	}
+}
+
+.mpmf-loading {
+	display: flex;
+	justify-content: center;
+	padding: 2em;
+}
+
+.mpmf-status-indicator {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-right: 0.5em;
+	border-radius: 50%;
+	vertical-align: middle;
+
+	&--active {
+		background-color: #46b450;
+	}
+
+	&--inactive {
+		background-color: #dc3232;
+	}
+}
+
+.mpmf-table {
+	margin-top: 1em;
+}
+
+.mpmf-score {
+	padding: 0.75em 1em;
+	border-left: 4px solid;
+	background: #f6f7f7;
+
+	&--good {
+		border-left-color: #46b450;
+	}
+
+	&--bad {
+		border-left-color: #dc3232;
+	}
+
+	&__detail {
+		display: block;
+		margin-top: 0.25em;
+		font-size: 0.9em;
+		color: #666;
+	}
+}
+
+.mpmf-label {
+	display: inline-block;
+	font-weight: 600;
+}
+
+.mpmf-number-input {
+	display: block;
+	margin-top: 0.25em;
+	padding: 0.4em;
+	width: 100px;
+}
+
+.mpmf-actions {
+	margin-top: 1.5em;
+}
