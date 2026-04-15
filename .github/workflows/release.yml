@@ -7,11 +7,11 @@ on:
 
 jobs:
   release:
-    name: Deploy
+    name: Build and attach zip
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://wordpress.org/plugins/make-postmeta-faster/
+      url: https://github.com/${{ github.repository }}/releases
     steps:
       - uses: actions/checkout@v4
 
@@ -50,14 +50,14 @@ jobs:
           version: ${{ github.event.release.tag_name }}
           files: make-postmeta-faster.php
 
-      - name: Deploy to WordPress Directory
-        uses: 10up/action-wordpress-plugin-deploy@stable
-        with:
-          generate-zip: true
-        env:
-          SLUG: make-postmeta-faster
-          SVN_USERNAME: ${{ secrets.WP_ORG_USERNAME }}
-          SVN_PASSWORD: ${{ secrets.WP_ORG_PASSWORD }}
+      - name: Clean Package
+        uses: tarosky/workflows/actions/distignore@main
+
+      - name: Zip Archive
+        run: |
+          mkdir ${{ github.event.repository.name }}
+          rsync -av --exclude=${{ github.event.repository.name }} --exclude=.git ./ ./${{ github.event.repository.name }}/
+          zip -r ./${{ github.event.repository.name }}.zip ./${{ github.event.repository.name }}
 
       - name: Upload release asset
         run: gh release upload ${{ github.event.release.tag_name }} ${{ github.workspace }}/${{ github.event.repository.name }}.zip --clobber
