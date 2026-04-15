@@ -41,6 +41,9 @@ jobs:
           npm run build:css
           npm run dump
 
+      - name: Generate readme.txt
+        uses: tarosky/workflows/actions/wp-readme@main
+
       - name: Versioning
         uses: tarosky/workflows/actions/versioning@main
         with:
