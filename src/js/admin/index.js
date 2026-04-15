@@ -6,12 +6,27 @@
  */
 
 const { useState, useEffect, createRoot, render } = wp.element;
-const { Button, Card, CardBody, CardHeader, Flex, FlexItem, Notice, Spinner } =
-	wp.components;
+const {
+	Button,
+	Card,
+	CardBody,
+	CardHeader,
+	Flex,
+	FlexItem,
+	Notice,
+	Spinner,
+	TabPanel,
+} = wp.components;
 const apiFetch = wp.apiFetch;
 const { __ } = wp.i18n;
 
-const API_PATH = 'mpmf/v1/index';
+const API_BASE = 'mpmf/v1/index';
+
+const TABLES = [
+	{ name: 'postmeta', title: __( 'Post Meta', 'mpmf' ) },
+	{ name: 'usermeta', title: __( 'User Meta', 'mpmf' ) },
+	{ name: 'termmeta', title: __( 'Term Meta', 'mpmf' ) },
+];
 
 /**
  * Index status card.
@@ -127,8 +142,9 @@ function ExplainCard( { explain, score } ) {
  * @param {Object}   props.keyLength
  * @param {Function} props.onSave
  * @param {boolean}  props.disabled
+ * @param {string}   props.table
  */
-function SettingsCard( { keyLength, onSave, disabled } ) {
+function SettingsCard( { keyLength, onSave, disabled, table } ) {
 	const [ metaKey, setMetaKey ] = useState( keyLength.meta_key );
 	const [ metaValue, setMetaValue ] = useState( keyLength.meta_value );
 
@@ -136,6 +152,9 @@ function SettingsCard( { keyLength, onSave, disabled } ) {
 		setMetaKey( keyLength.meta_key );
 		setMetaValue( keyLength.meta_value );
 	}, [ keyLength ] );
+
+	const keyId = `mpmf-${ table }-meta-key-length`;
+	const valueId = `mpmf-${ table }-meta-value-length`;
 
 	return (
 		<Card>
@@ -151,14 +170,11 @@ function SettingsCard( { keyLength, onSave, disabled } ) {
 				</p>
 				<Flex align="end" gap={ 4 }>
 					<FlexItem>
-						<label
-							className="mpmf-label"
-							htmlFor="mpmf-meta-key-length"
-						>
+						<label className="mpmf-label" htmlFor={ keyId }>
 							{ __( 'Meta Key Length', 'mpmf' ) }
 						</label>
 						<input
-							id="mpmf-meta-key-length"
+							id={ keyId }
 							type="number"
 							className="mpmf-number-input"
 							min={ 32 }
@@ -171,14 +187,11 @@ function SettingsCard( { keyLength, onSave, disabled } ) {
 						/>
 					</FlexItem>
 					<FlexItem>
-						<label
-							className="mpmf-label"
-							htmlFor="mpmf-meta-value-length"
-						>
+						<label className="mpmf-label" htmlFor={ valueId }>
 							{ __( 'Meta Value Length', 'mpmf' ) }
 						</label>
 						<input
-							id="mpmf-meta-value-length"
+							id={ valueId }
 							type="number"
 							className="mpmf-number-input"
 							min={ 64 }
@@ -205,9 +218,12 @@ function SettingsCard( { keyLength, onSave, disabled } ) {
 }
 
 /**
- * Main application component.
+ * Table-specific view. Each tab renders this with a different table.
+ *
+ * @param {Object} props
+ * @param {string} props.table Table identifier (postmeta/usermeta/termmeta).
  */
-function App() {
+function TableView( { table } ) {
 	const [ loading, setLoading ] = useState( true );
 	const [ actionInProgress, setActionInProgress ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
@@ -219,9 +235,12 @@ function App() {
 		key_length: { meta_key: 255, meta_value: 64 },
 	} );
 
+	const path = `${ API_BASE }/${ table }`;
+	const optionName = `mpmf-${ table }-key-length`;
+
 	const fetchStatus = () => {
 		setLoading( true );
-		apiFetch( { path: API_PATH } )
+		apiFetch( { path } )
 			.then( ( res ) => {
 				setData( res );
 				setLoading( false );
@@ -232,12 +251,13 @@ function App() {
 			} );
 	};
 
-	useEffect( fetchStatus, [] );
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	useEffect( fetchStatus, [ table ] );
 
 	const addIndex = ( update = false ) => {
 		setActionInProgress( true );
 		setNotice( null );
-		apiFetch( { path: API_PATH, method: 'POST', data: { update } } )
+		apiFetch( { path, method: 'POST', data: { update } } )
 			.then( ( res ) => {
 				setNotice( { type: 'success', message: res.message } );
 				fetchStatus();
@@ -259,7 +279,7 @@ function App() {
 		}
 		setActionInProgress( true );
 		setNotice( null );
-		apiFetch( { path: API_PATH, method: 'DELETE' } )
+		apiFetch( { path, method: 'DELETE' } )
 			.then( ( res ) => {
 				setNotice( { type: 'success', message: res.message } );
 				fetchStatus();
@@ -276,7 +296,7 @@ function App() {
 		apiFetch( {
 			path: '/wp/v2/settings',
 			method: 'POST',
-			data: { 'mpmf-postmeta-key-length': [ metaKey, metaValue ] },
+			data: { [ optionName ]: [ metaKey, metaValue ] },
 		} )
 			.then( () => {
 				setNotice( {
@@ -325,6 +345,7 @@ function App() {
 				keyLength={ data.key_length }
 				onSave={ saveSettings }
 				disabled={ isDisabled }
+				table={ table }
 			/>
 
 			<Flex className="mpmf-actions" gap={ 3 }>
@@ -374,6 +395,17 @@ function App() {
 				</FlexItem>
 			</Flex>
 		</div>
+	);
+}
+
+/**
+ * Main application component.
+ */
+function App() {
+	return (
+		<TabPanel className="mpmf-tabs" tabs={ TABLES }>
+			{ ( tab ) => <TableView table={ tab.name } /> }
+		</TabPanel>
 	);
 }
 

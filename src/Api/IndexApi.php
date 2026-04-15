@@ -3,6 +3,9 @@
 namespace Tarosky\MakePostmetaFaster\Api;
 
 use Tarosky\MakePostmetaFaster\IndexChecker\PostMetaIndexChecker;
+use Tarosky\MakePostmetaFaster\IndexChecker\TermMetaIndexChecker;
+use Tarosky\MakePostmetaFaster\IndexChecker\UserMetaIndexChecker;
+use Tarosky\MakePostmetaFaster\Pattern\AbstractIndexChecker;
 use Tarosky\MakePostmetaFaster\Pattern\SingletonPattern;
 
 /**
@@ -12,7 +15,16 @@ class IndexApi extends SingletonPattern {
 
 	const NAMESPACE = 'mpmf/v1';
 
-	const ROUTE = '/index';
+	/**
+	 * Map of table identifier to checker class name.
+	 *
+	 * @var array<string, class-string<AbstractIndexChecker>>
+	 */
+	const TABLES = array(
+		'postmeta' => PostMetaIndexChecker::class,
+		'usermeta' => UserMetaIndexChecker::class,
+		'termmeta' => TermMetaIndexChecker::class,
+	);
 
 	/**
 	 * {@inheritDoc}
@@ -27,7 +39,18 @@ class IndexApi extends SingletonPattern {
 	 * @return void
 	 */
 	public function register_routes() {
-		register_rest_route( self::NAMESPACE, self::ROUTE, array(
+		// List all tables' status.
+		register_rest_route( self::NAMESPACE, '/index', array(
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'handle_list' ),
+				'permission_callback' => array( $this, 'permission_check' ),
+			),
+		) );
+
+		// Per-table operations.
+		$table_pattern = '(?P<table>' . implode( '|', array_keys( self::TABLES ) ) . ')';
+		register_rest_route( self::NAMESPACE, '/index/' . $table_pattern, array(
 			array(
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'handle_get' ),
@@ -70,39 +93,69 @@ class IndexApi extends SingletonPattern {
 	}
 
 	/**
-	 * Get index checker instance.
+	 * Resolve a checker instance from table identifier.
 	 *
-	 * @return PostMetaIndexChecker
+	 * @param string $table Table identifier.
+	 * @return AbstractIndexChecker|null Null if unknown.
 	 */
-	protected function checker() {
-		return PostMetaIndexChecker::get_instance();
+	protected function checker( $table ) {
+		if ( ! isset( self::TABLES[ $table ] ) ) {
+			return null;
+		}
+		$class = self::TABLES[ $table ];
+		return call_user_func( array( $class, 'get_instance' ) );
 	}
 
 	/**
-	 * Handle GET request - return index status.
+	 * Build status payload for a single table.
+	 *
+	 * @param AbstractIndexChecker $checker Checker instance.
+	 * @return array
+	 */
+	protected function build_status( AbstractIndexChecker $checker ) {
+		return array(
+			'has_index'     => $checker->has_index(),
+			'indices'       => $checker->get_indices( $checker->key_name() ),
+			'explain'       => $checker->explain(),
+			'explain_score' => $checker->explain_score(),
+			'key_length'    => $this->get_key_length( $checker ),
+		);
+	}
+
+	/**
+	 * Handle GET /index - return status for all tables.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response
+	 */
+	public function handle_list( $request ) {
+		unset( $request );
+		$result = array();
+		foreach ( array_keys( self::TABLES ) as $table ) {
+			$result[ $table ] = $this->build_status( $this->checker( $table ) );
+		}
+		return new \WP_REST_Response( $result );
+	}
+
+	/**
+	 * Handle GET /index/{table} - return status for one table.
 	 *
 	 * @param \WP_REST_Request $request Request object.
 	 * @return \WP_REST_Response
 	 */
 	public function handle_get( $request ) {
-		$checker = $this->checker();
-		return new \WP_REST_Response( array(
-			'has_index'     => $checker->has_index(),
-			'indices'       => $checker->get_indices( $checker->key_name() ),
-			'explain'       => $checker->explain(),
-			'explain_score' => $checker->explain_score(),
-			'key_length'    => $this->get_key_length(),
-		) );
+		$checker = $this->checker( $request->get_param( 'table' ) );
+		return new \WP_REST_Response( $this->build_status( $checker ) );
 	}
 
 	/**
-	 * Handle POST request - add index.
+	 * Handle POST /index/{table} - add index.
 	 *
 	 * @param \WP_REST_Request $request Request object.
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function handle_post( $request ) {
-		$checker = $this->checker();
+		$checker = $this->checker( $request->get_param( 'table' ) );
 		$update  = $request->get_param( 'update' );
 		if ( $checker->has_index() ) {
 			if ( ! $update ) {
@@ -135,13 +188,13 @@ class IndexApi extends SingletonPattern {
 	}
 
 	/**
-	 * Handle DELETE request - remove index.
+	 * Handle DELETE /index/{table} - remove index.
 	 *
 	 * @param \WP_REST_Request $request Request object.
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function handle_delete( $request ) {
-		$checker = $this->checker();
+		$checker = $this->checker( $request->get_param( 'table' ) );
 		if ( ! $checker->has_index() ) {
 			return new \WP_Error(
 				'mpmf_no_index',
@@ -164,22 +217,16 @@ class IndexApi extends SingletonPattern {
 	}
 
 	/**
-	 * Get current key length settings.
+	 * Get current key length settings for the checker.
 	 *
+	 * @param AbstractIndexChecker $checker Checker instance.
 	 * @return array{meta_key: int, meta_value: int}
 	 */
-	protected function get_key_length() {
-		$length = get_option( 'mpmf-postmeta-key-length', array( 255, 64 ) );
-		if ( ! is_array( $length ) || count( $length ) !== 2 ) {
-			return array(
-				'meta_key'   => 255,
-				'meta_value' => 64,
-			);
-		}
-		list( $key_len, $val_len ) = array_map( 'intval', $length );
+	protected function get_key_length( AbstractIndexChecker $checker ) {
+		list( $key_len, $val_len ) = $checker->key_length();
 		return array(
-			'meta_key'   => min( max( 32, $key_len ), 255 ),
-			'meta_value' => max( 64, $val_len ),
+			'meta_key'   => $key_len,
+			'meta_value' => $val_len,
 		);
 	}
 }

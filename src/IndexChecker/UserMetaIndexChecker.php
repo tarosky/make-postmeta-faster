@@ -6,15 +6,15 @@ namespace Tarosky\MakePostmetaFaster\IndexChecker;
 use Tarosky\MakePostmetaFaster\Pattern\AbstractIndexChecker;
 
 /**
- * Post meta index checker.
+ * User meta index checker.
  */
-class PostMetaIndexChecker extends AbstractIndexChecker {
+class UserMetaIndexChecker extends AbstractIndexChecker {
 
 	/**
 	 * {@inheritDoc}
 	 */
 	protected function table(): string {
-		return $this->db->postmeta;
+		return $this->db->usermeta;
 	}
 
 	/**
@@ -28,11 +28,13 @@ class PostMetaIndexChecker extends AbstractIndexChecker {
 	 * {@inheritDoc}
 	 */
 	public function option_name(): string {
-		return 'mpmf-postmeta-key-length';
+		return 'mpmf-usermeta-key-length';
 	}
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Uses `first_name` which is a common user meta for a realistic sample.
 	 */
 	protected function explain_query(): string {
 		$query = <<<SQL
@@ -40,6 +42,6 @@ class PostMetaIndexChecker extends AbstractIndexChecker {
 			WHERE meta_key = %s
 			  AND meta_value LIKE %s
 SQL;
-		return $this->db->prepare( $query, $this->table(), '_wp_attached_file', wp_date( 'Y/m%' ) );
+		return $this->db->prepare( $query, $this->table(), 'first_name', 'A%' );
 	}
 }

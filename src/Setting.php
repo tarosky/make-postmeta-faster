@@ -98,5 +98,7 @@ class Setting extends SingletonPattern {
 	 */
 	public function register_settings() {
 		register_setting( 'mpmf', 'mpmf-postmeta-key-length' );
+		register_setting( 'mpmf', 'mpmf-usermeta-key-length' );
+		register_setting( 'mpmf', 'mpmf-termmeta-key-length' );
 	}
 }
