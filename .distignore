@@ -1,21 +1,41 @@
+# Development config
 .browserslistrc
-.editorconfig
-.eslintrc
 .distignore
+.editorconfig
+.eslintrc.json
 .git
-.github
 .gitignore
-.node-version
+.github
+.idea
 .stylelintrc.json
-.wordpress-org
 .wp-env.json
-node_modules
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build/config
+composer.json
 composer.lock
+package.json
 package-lock.json
-phpcs.ruleset.xml
+
+# Testing
 phpunit.xml.dist
-README.md
-webpack.config.js
-wordpress
-bin
+phpcs.ruleset.xml
+.phpunit.result.cache
 tests
+
+# Documentation
+README.md
+
+# Directories
+bin
+node_modules
+wordpress
+tasks
+
+# Archives & generated
+*.sql
+*.tar.gz
+*.zip
