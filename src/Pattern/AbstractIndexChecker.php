@@ -25,6 +25,58 @@ abstract class AbstractIndexChecker extends SingletonPattern {
 	abstract public function key_name(): string;
 
 	/**
+	 * Option name to store key length setting.
+	 *
+	 * @return string
+	 */
+	abstract public function option_name(): string;
+
+	/**
+	 * Explain query to check if this index is required.
+	 *
+	 * @return string
+	 */
+	abstract protected function explain_query(): string;
+
+	/**
+	 * Key length for (meta_key, meta_value) composite index.
+	 *
+	 * Reads the per-table option and sanitizes the values. Values are clamped
+	 * to MySQL / InnoDB acceptable ranges:
+	 * - meta_key: 32 - 255 (varchar(255) native size)
+	 * - meta_value: min 64 (longtext, realistic prefix length)
+	 *
+	 * @return int[] [meta_key_length, meta_value_length]
+	 */
+	public function key_length(): array {
+		$length = get_option( $this->option_name(), array( 255, 64 ) );
+		if ( ! is_array( $length ) || count( $length ) !== 2 ) {
+			return array( 255, 64 );
+		}
+		list( $key_len, $val_len ) = array_map( 'intval', $length );
+		return array(
+			min( max( 32, $key_len ), 255 ),
+			max( 64, $val_len ),
+		);
+	}
+
+	/**
+	 * A query to add index for the table.
+	 *
+	 * Common implementation for all meta tables (postmeta/usermeta/termmeta).
+	 * All three have the same meta_key/meta_value columns.
+	 *
+	 * @return string
+	 */
+	protected function add_index_query(): string {
+		$query                       = <<<SQL
+			ALTER TABLE %i ADD INDEX %i (meta_key(%d), meta_value(%d));
+SQL;
+		list( $key_len, $value_len ) = $this->key_length();
+		return $this->db->prepare( $query, $this->table(), $this->key_name(), $key_len, $value_len );
+	}
+
+	/**
 	 * Get index from key name.
 	 *
 	 * @param string $name Index name. If empty, all indices.
@@ -67,13 +119,6 @@ SQL;
 	}
 
 	/**
-	 * A query to add index for the table.
-	 *
-	 * @return string
-	 */
-	abstract protected function add_index_query(): string;
-
-	/**
 	 * Create index for table.
 	 *
 	 * @return bool
@@ -91,13 +136,6 @@ SQL;
 	public function has_index() {
 		return count( $this->get_indices( $this->key_name() ) ) > 0;
 	}
-
-	/**
-	 * Explain query to check if this index is required.
-	 *
-	 * @return string
-	 */
-	abstract protected function explain_query(): string;
 
 	/**
 	 * Explain query.

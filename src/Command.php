@@ -4,6 +4,8 @@ namespace Tarosky\MakePostmetaFaster;
 
 use cli\Table;
 use Tarosky\MakePostmetaFaster\IndexChecker\PostMetaIndexChecker;
+use Tarosky\MakePostmetaFaster\IndexChecker\TermMetaIndexChecker;
+use Tarosky\MakePostmetaFaster\IndexChecker\UserMetaIndexChecker;
 
 /**
  * Utility commands for Make Postmeta Faster plugin.
@@ -19,6 +21,8 @@ class Command extends \WP_CLI_Command {
 	protected function map_dbname( $name ) {
 		$map = array(
 			'postmeta' => PostMetaIndexChecker::get_instance(),
+			'usermeta' => UserMetaIndexChecker::get_instance(),
+			'termmeta' => TermMetaIndexChecker::get_instance(),
 		);
 		if ( ! isset( $map[ $name ] ) ) {
 			\WP_CLI::error( sprintf( __( '%s is not available', 'mpmf' ), $name ) );

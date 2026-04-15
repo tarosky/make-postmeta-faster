@@ -6,15 +6,15 @@ namespace Tarosky\MakePostmetaFaster\IndexChecker;
 use Tarosky\MakePostmetaFaster\Pattern\AbstractIndexChecker;
 
 /**
- * Post meta index checker.
+ * Term meta index checker.
  */
-class PostMetaIndexChecker extends AbstractIndexChecker {
+class TermMetaIndexChecker extends AbstractIndexChecker {
 
 	/**
 	 * {@inheritDoc}
 	 */
 	protected function table(): string {
-		return $this->db->postmeta;
+		return $this->db->termmeta;
 	}
 
 	/**
@@ -28,11 +28,13 @@ class PostMetaIndexChecker extends AbstractIndexChecker {
 	 * {@inheritDoc}
 	 */
 	public function option_name(): string {
-		return 'mpmf-postmeta-key-length';
+		return 'mpmf-termmeta-key-length';
 	}
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Uses `order` which is a common term meta (e.g., WooCommerce category ordering) for a realistic sample.
 	 */
 	protected function explain_query(): string {
 		$query = <<<SQL
@@ -40,6 +42,6 @@ class PostMetaIndexChecker extends AbstractIndexChecker {
 			WHERE meta_key = %s
 			  AND meta_value LIKE %s
 SQL;
-		return $this->db->prepare( $query, $this->table(), '_wp_attached_file', wp_date( 'Y/m%' ) );
+		return $this->db->prepare( $query, $this->table(), 'order', '1%' );
 	}
 }
